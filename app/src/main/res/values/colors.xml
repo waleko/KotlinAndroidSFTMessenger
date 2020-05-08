@@ -3,7 +3,7 @@
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#03DAC5</color>
-    <color name="others_message_color">#CDCDCD</color>
+    <color name="others_message_color">#DDDDDD</color>
     <color name="my_message_color">#b9d4ff</color>
 
     <color name="palette_amber">#f9a857</color>
