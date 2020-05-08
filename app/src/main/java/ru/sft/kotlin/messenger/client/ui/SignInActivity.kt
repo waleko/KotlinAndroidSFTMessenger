@@ -82,6 +82,8 @@ class SignInActivity : AppCompatActivity() {
         registerLink.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
+            setResult(Activity.RESULT_OK)
+            finish()
         }
     }
 
