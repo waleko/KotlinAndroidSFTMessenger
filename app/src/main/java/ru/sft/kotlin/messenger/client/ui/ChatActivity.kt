@@ -59,6 +59,7 @@ class ChatActivity : AppCompatActivity() {
         model.messages.observe(this, Observer { messages ->
             adapter.setMessages(messages)
             model.updateMessages()
+            messagesRecyclerView.scrollToPosition(adapter.itemCount - 1)
         })
 
         sendButton.setOnClickListener {
