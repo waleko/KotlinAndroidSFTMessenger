@@ -23,7 +23,9 @@
     <string name="sign_in_action">Sign In</string>
     <string name="sign_out_action">Sign Out</string>
     <string name="settings_action">Settings</string>
-    <string name="new_message_hint">Type you message</string>
+    <string name="new_message_hint">Type your message</string>
     <string name="send_message_button">Send message</string>
     <string name="register_link">Register</string>
+    <string name="join_chat">Join</string>
+    <string name="appearance_header">Appearance</string>
 </resources>

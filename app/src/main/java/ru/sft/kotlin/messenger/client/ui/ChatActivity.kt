@@ -4,16 +4,19 @@ import android.os.Bundle
 import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_chat.*
-import kotlinx.android.synthetic.main.message_item.view.*
+import kotlinx.android.synthetic.main.others_message_item.view.*
 import ru.sft.kotlin.messenger.client.R
 import ru.sft.kotlin.messenger.client.api.NewMessageInfo
 import ru.sft.kotlin.messenger.client.data.entity.MessageWithMember
-import java.text.SimpleDateFormat
+import ru.sft.kotlin.messenger.client.util.colorByUserId
+import ru.sft.kotlin.messenger.client.util.formatTimeString
+import java.lang.IllegalArgumentException
 import java.util.*
 
 class ChatActivity : AppCompatActivity() {
@@ -36,13 +39,16 @@ class ChatActivity : AppCompatActivity() {
             stackFromEnd = true
         }
 
-        adapter = ChatAdapter(isSystemChat)
-        messagesRecyclerView.adapter = adapter
-
         model = ViewModelProvider(this, ChatViewModelFactory(this.application, chatId, isSystemChat))
             .get(ChatViewModel::class.java)
 
+        // Берём id пользователя
+        val userId = model.currentUser.value!!.userId
+
         title = model.chat.value?.name ?: "..."
+
+        adapter = ChatAdapter(isSystemChat, userId)
+        messagesRecyclerView.adapter = adapter
 
         model.chat.observe(this, Observer {
             title = model.chat.value?.name ?: "No chat name"
@@ -113,7 +119,12 @@ class ChatActivity : AppCompatActivity() {
     }
 }
 
-class ChatAdapter(private val isSystemChat: Boolean) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
+enum class MessageViewType
+{
+    OTHERS, MY
+}
+
+class ChatAdapter(private val isSystemChat: Boolean, private val userId: String) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
     class ChatViewHolder(val itemLayout: View) : RecyclerView.ViewHolder(itemLayout)
 
     // Cached messages
@@ -124,8 +135,22 @@ class ChatAdapter(private val isSystemChat: Boolean) : RecyclerView.Adapter<Chat
         this.messages.addAll(messages)
         notifyDataSetChanged()
     }
+
+    override fun getItemViewType(position: Int): Int {
+        // Check if it's my message
+        val type = if (messages[position].userId == this.userId) MessageViewType.MY else MessageViewType.OTHERS
+        return type.ordinal
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
-        val itemLayout = LayoutInflater.from(parent.context).inflate(R.layout.message_item, parent, false)
+        // Get the layout according to viewType
+        val layout = when(viewType) {
+            MessageViewType.OTHERS.ordinal -> R.layout.others_message_item
+            MessageViewType.MY.ordinal -> R.layout.my_message_item
+            else -> throw IllegalArgumentException("Invalid view type")
+        }
+
+        val itemLayout = LayoutInflater.from(parent.context).inflate(layout, parent, false)
         return ChatViewHolder(
             itemLayout
         )
@@ -134,21 +159,27 @@ class ChatAdapter(private val isSystemChat: Boolean) : RecyclerView.Adapter<Chat
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
         val message = messages[position]
         val fromUser = message.memberDisplayName
-        val dateTime = SimpleDateFormat("dd-MMM-yyyy HH:mm:ss", Locale.getDefault()).format(Date(message.createdOn))
+        val dateTime = formatTimeString(Date(message.createdOn))
         val itemLayout = holder.itemLayout
-        itemLayout.messageHeaderTextView.text = "$dateTime [ $fromUser ]"
-        itemLayout.bodyTextView.text = message.text
 
-        // TODO: Было бы лучше показывать сообщения текущего пользователя иначе, чем сообщения других пользователей.
-        // Например, показывать их в "облачке" справа, а остальные - в "облачке" слева
-        // Для начала можно не рисовать "облачка", а выделять сообщения разным цветом
+        itemLayout.bodyTextView.text = message.text
+        itemLayout.timeTextView.text = dateTime
+
+        if (holder.itemViewType == MessageViewType.OTHERS.ordinal)
+        {
+            itemLayout.messageHeaderTextView.text = fromUser
+            itemLayout.messageHeaderTextView.setTextColor(
+                ContextCompat.getColor(holder.itemLayout.context, colorByUserId(fromUser))
+            )
+        }
 
         if (isSystemChat) {
-            // TODO: в случае системного чата надо определять, является ли сообщение приглашением, и отображать кнопку "Join" под текстом сообщения
-            // Для этого придётся проверять, что сообщение от системного пользователя и использовать регулярное выражение, т.к. другого способа API не предоставляет
-            // Сделать кнопку видимой можно так: itemLayout.joinButton.visibility = View.VISIBLE
-            // TODO: Также надо добавить обработчик нажатия на кнопку Join
+//             TODO: в случае системного чата надо определять, является ли сообщение приглашением, и отображать кнопку "Join" под текстом сообщения
+//             Для этого придётся проверять, что сообщение от системного пользователя и использовать регулярное выражение, т.к. другого способа API не предоставляет
+//             Сделать кнопку видимой можно так: itemLayout.joinButton.visibility = View.VISIBLE
+//             TODO: Также надо добавить обработчик нажатия на кнопку Join
         }
+
         itemLayout.setOnClickListener {
             Toast.makeText(itemLayout.context, "TODO: показать опции для работы с сообщением", Toast.LENGTH_LONG).show()
         }
