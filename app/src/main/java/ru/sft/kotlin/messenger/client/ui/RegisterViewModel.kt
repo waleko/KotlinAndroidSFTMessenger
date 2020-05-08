@@ -45,15 +45,13 @@ class RegisterViewModel(app: Application) : AndroidViewModel(app) {
 
     fun dataChanged(userId: String, password: String, displayName: String) {
         if (!isUserIdValid(userId)) {
-            _state.value =
-                RegisterFormState(passwordError = R.string.invalid_password)
+            _state.value = RegisterFormState(userIdError = R.string.invalid_user_id)
         } else if (!isDisplayNameValid(displayName)) {
             _state.value = RegisterFormState(displayNameError = R.string.invalid_display_name)
         } else if (!isPasswordValid(password)) {
-            _state.value = RegisterFormState(userIdError = R.string.invalid_user_id)
+            _state.value = RegisterFormState(passwordError = R.string.invalid_password)
         } else {
-            _state.value =
-                RegisterFormState(isDataValid = true)
+            _state.value = RegisterFormState(isDataValid = true)
         }
     }
 
