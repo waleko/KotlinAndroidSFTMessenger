@@ -1,6 +1,7 @@
 package ru.sft.kotlin.messenger.client.data.entity
 
 import androidx.room.*
+import ru.sft.kotlin.messenger.client.api.MessageInfo
 
 @Entity(
     tableName = "Messages",
@@ -22,7 +23,15 @@ data class Message (
     val memberId: Int,
     val text: String,
     val createdOn: Long
-)
+) {
+    // FIXME Fix this redundancy
+    constructor(message: MessageInfo) : this(
+        message.messageId,
+        message.memberId,
+        message.text,
+        message.createdOn
+    )
+}
 
 class MessageWithMember (
     var id: Int,

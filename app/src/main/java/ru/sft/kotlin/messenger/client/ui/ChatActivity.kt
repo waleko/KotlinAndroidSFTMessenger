@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_chat.*
 import kotlinx.android.synthetic.main.message_item.view.*
 import ru.sft.kotlin.messenger.client.R
+import ru.sft.kotlin.messenger.client.api.NewMessageInfo
 import ru.sft.kotlin.messenger.client.data.entity.MessageWithMember
 import java.text.SimpleDateFormat
 import java.util.*
@@ -55,12 +56,9 @@ class ChatActivity : AppCompatActivity() {
         })
 
         sendButton.setOnClickListener {
-            // TODO: отправить сообщение
-            Toast.makeText(
-                this,
-                "TODO: отправить сообщение",
-                Toast.LENGTH_LONG
-            ).show()
+            val text = messageText.text.toString()
+            model.sendMessage(chatId, NewMessageInfo(text))
+            messageText.text.clear()
         }
     }
 

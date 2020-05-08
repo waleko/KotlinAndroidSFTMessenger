@@ -158,6 +158,21 @@ class MessengerRepository private constructor(private val context: Context):
         return dao.chatById(chatId)
     }
 
+    suspend fun sendMessage(chatId: Int, newMessageInfo: NewMessageInfo) {
+        try {
+            val accessToken = getAccessToken() ?: throw CallNotExecutedException("Unable to get access token")
+            // запрашиваем свежие сообщения с сервера
+            val messageInfo = api.sendMessage(chatId, newMessageInfo, accessToken.toBearer()).invokeAsync()
+            dao.insertMessages(Message(messageInfo))
+        }
+        catch (e: CallNotExecutedException) {
+            Log.w(logTag, "Request error: ${e.message}", e)
+        }
+        catch (e: Exception) {
+            Log.e(logTag, e.message, e)
+        }
+    }
+
     suspend fun updateMessages(chatId: Int) {
         try {
             val lastMessageId = dao.lastChatMessage(chatId)

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ru.sft.kotlin.messenger.client.api.NewMessageInfo
 import ru.sft.kotlin.messenger.client.data.MessengerRepository
 import ru.sft.kotlin.messenger.client.data.entity.Message
 import ru.sft.kotlin.messenger.client.data.entity.User
@@ -34,6 +35,10 @@ class ChatViewModel(
 
     fun deleteMessage(message: Message) = viewModelScope.launch(Dispatchers.IO) {
         repository.deleteMessage(message)
+    }
+
+    fun sendMessage(chatId: Int, message: NewMessageInfo) = viewModelScope.launch(Dispatchers.IO) {
+        repository.sendMessage(chatId, message)
     }
 }
 
