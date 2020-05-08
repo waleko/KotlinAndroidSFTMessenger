@@ -29,20 +29,20 @@ class RegisterActivity : AppCompatActivity() {
             toolbarRegister.isEnabled = registerState.isDataValid
 
             if (registerState.userIdError != null) {
-                user_id.error = getString(registerState.userIdError)
+                user_id_register.error = getString(registerState.userIdError)
             }
             if (registerState.displayNameError != null) {
                 display_name.error = getString(registerState.displayNameError)
             }
             if (registerState.passwordError != null) {
-                password.error = getString(registerState.passwordError)
+                password_register.error = getString(registerState.passwordError)
             }
         })
 
         model.result.observe(this, Observer {
             val registerResult = it ?: return@Observer
 
-            loading.visibility = View.GONE
+            loading_register.visibility = View.GONE
 
             if (registerResult.error != null) {
                 showRegisterFailed(registerResult.error)
@@ -52,26 +52,26 @@ class RegisterActivity : AppCompatActivity() {
             }
         })
 
-        user_id.afterTextChanged {
+        user_id_register.afterTextChanged {
             model.dataChanged(
-                userId = user_id.text.toString(),
-                password = password.text.toString(),
+                userId = user_id_register.text.toString(),
+                password = password_register.text.toString(),
                 displayName = display_name.text.toString()
             )
         }
         display_name.afterTextChanged {
             model.dataChanged(
-                userId = user_id.text.toString(),
-                password = password.text.toString(),
+                userId = user_id_register.text.toString(),
+                password = password_register.text.toString(),
                 displayName = display_name.text.toString()
             )
         }
 
-        password.apply {
+        password_register.apply {
             afterTextChanged {
                 model.dataChanged(
-                    userId = user_id.text.toString(),
-                    password = password.text.toString(),
+                    userId = user_id_register.text.toString(),
+                    password = password_register.text.toString(),
                     displayName = display_name.text.toString()
                 )
             }
@@ -79,8 +79,8 @@ class RegisterActivity : AppCompatActivity() {
                 when (actionId) {
                     EditorInfo.IME_ACTION_DONE ->
                         model.register(
-                            userId = user_id.text.toString(),
-                            password = password.text.toString(),
+                            userId = user_id_register.text.toString(),
+                            password = password_register.text.toString(),
                             displayName = display_name.text.toString()
                         )
                 }
@@ -89,8 +89,8 @@ class RegisterActivity : AppCompatActivity() {
 
             toolbarRegister.setOnClickListener {
                 model.register(
-                    userId = user_id.text.toString(),
-                    password = password.text.toString(),
+                    userId = user_id_register.text.toString(),
+                    password = password_register.text.toString(),
                     displayName = display_name.text.toString()
                 )
             }
