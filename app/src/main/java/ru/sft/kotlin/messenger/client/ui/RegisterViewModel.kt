@@ -7,12 +7,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import ru.sft.kotlin.messenger.client.R
-import ru.sft.kotlin.messenger.client.api.UserInfo
 import ru.sft.kotlin.messenger.client.data.MessengerRepository
+import ru.sft.kotlin.messenger.client.data.entity.User
 import ru.sft.kotlin.messenger.client.util.Result
 
 data class RegisterResult(
-    val success: UserInfo? = null,
+    val success: User? = null,
     val error: Int? = null
 )
 
@@ -34,10 +34,14 @@ class RegisterViewModel(app: Application) : AndroidViewModel(app) {
 
     fun register(userId: String, password: String, displayName: String) {
         viewModelScope.launch {
-            val result = repository.register(userId, password, displayName)
-            if (result is Result.Success)
-                _result.value = RegisterResult(success = result.data)
-            else
+            val registerResult = repository.register(userId, password, displayName)
+            if (registerResult is Result.Success) {
+                val signInResult = repository.signIn(userId, password)
+                if (signInResult is Result.Success)
+                    _result.value = RegisterResult(success = signInResult.data)
+                else
+                    _result.value = RegisterResult(error = R.string.login_after_register_failed)
+            } else
                 _result.value = RegisterResult(error = R.string.register_failed)
 
         }
