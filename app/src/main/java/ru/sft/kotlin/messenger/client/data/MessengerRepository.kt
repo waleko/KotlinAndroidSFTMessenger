@@ -13,10 +13,7 @@ import okhttp3.*
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import ru.sft.kotlin.messenger.client.*
-import ru.sft.kotlin.messenger.client.api.MessengerApi
-import ru.sft.kotlin.messenger.client.api.PasswordInfo
-import ru.sft.kotlin.messenger.client.api.RefreshTokenApi
-import ru.sft.kotlin.messenger.client.api.RefreshTokenInfo
+import ru.sft.kotlin.messenger.client.api.*
 import ru.sft.kotlin.messenger.client.data.entity.*
 import ru.sft.kotlin.messenger.client.util.CallNotExecutedException
 import ru.sft.kotlin.messenger.client.util.Result
@@ -190,6 +187,24 @@ class MessengerRepository private constructor(private val context: Context):
     }
 
     private val logTag = "Repository"
+
+    suspend fun register(userId: String, password: String, displayName: String): Result<UserInfo> {
+        val previousUser = _currentUser.value
+        if (previousUser != null) {
+            // регистрируем нового пользователя -> надо разлогиниться
+            signOut()
+        }
+        try {
+            val userInfo =
+                api.registerUser(NewUserInfo(userId, displayName, password)).invokeAsync()
+            return Result.Success(userInfo)
+        } catch (e: CallNotExecutedException) {
+            Log.w(logTag, "Request error: ${e.message}", e)
+            return Result.Error(e)
+        } catch (e: Exception) {
+            return Result.Error(e)
+        }
+    }
 
     suspend fun signIn(userId: String, password: String): Result<User> {
         val previousUser = _currentUser.value

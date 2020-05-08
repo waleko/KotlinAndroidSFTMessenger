@@ -1,6 +1,7 @@
 package ru.sft.kotlin.messenger.client.ui
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -79,12 +80,8 @@ class SignInActivity : AppCompatActivity() {
         }
 
         registerLink.setOnClickListener {
-            // TODO: показывать форму регистрации
-            Toast.makeText(
-                this,
-                "TODO: показывать форму регистрации",
-                Toast.LENGTH_LONG
-            ).show()
+            val intent = Intent(this, RegisterActivity::class.java)
+            startActivity(intent)
         }
     }
 
