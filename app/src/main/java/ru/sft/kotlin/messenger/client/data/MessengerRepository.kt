@@ -222,22 +222,17 @@ class MessengerRepository private constructor(private val context: Context):
         }
     }
 
-    suspend fun signIn(userId: String, password: String): Result<User> {
-        val previousUser = _currentUser.value
-        if (previousUser != null && previousUser.userId != userId) {
-            // пользователь поменялся - принудительно разлогиниваем предыдущего пользователя
-            signOut()
-        }
+    suspend fun updateChatsList() {
         try {
             // отправляем запрос Sign In на сервер
-            val authInfo = api.signIn(userId, PasswordInfo(password)).invokeAsync()
-            // запрашиваем данные пользователя
-            val userInfo = api.getUserByUserId(userId, authInfo.accessTokenHeader).invokeAsync() ?: return Result.Error(IllegalStateException("User not found"))
+            val accessToken = getAccessToken() ?: return
+            val accessTokenHeader = accessToken.toBearer()
             // запрашиваем список чатов пользователя
-            val chats = api.listChats(authInfo.accessTokenHeader).invokeAsync()
-            // обновляем даныне в настройках и локальной базе данных
-            val user = User(userInfo.userId, userInfo.displayName)
-            dao.insertUsers(user)
+            val chats = api.listChats(accessTokenHeader).invokeAsync()
+            // NB! В качестве имени чата лучше использовать то имя, которое ему дал пользователь
+            // Оно хранится в поле member.chatDisplayName участника чата с member.userId равным currentUser.userId
+            val chatNames = mutableMapOf<Int, String>()
+            val allMembers = mutableListOf<Member>()
 
             // NB! Сиситемный чат отличается тем, что из него нельзя выйти и в него нельзя приглашать.
             // Кроме того для него требуется специальная обработка сообщений с приглашениями в чаты
@@ -245,24 +240,20 @@ class MessengerRepository private constructor(private val context: Context):
             var systemChatId : Int = -1
 
             // запрашиваем данные о системном пользователе и сохраняем в базе
-            val systemUserInfo = api.getSystemUser(authInfo.accessTokenHeader).invokeAsync()
+            val systemUserInfo = api.getSystemUser(accessTokenHeader).invokeAsync()
             val systemUser = User(systemUserInfo.userId, systemUserInfo.displayName)
-            dao.insertUsers(systemUser)
-
-            // NB! В качестве имени чата лучше использовать то имя, которое ему дал пользователь
-            // Оно хранится в поле member.chatDisplayName участника чата с member.userId равным currentUser.userId
-            val chatNames = mutableMapOf<Int, String>()
-            val allMembers = mutableListOf<Member>()
 
             // запрашиваем участников чата для каждого чата
             chats.forEach { chat ->
-                val members = api.listChatMembers(chat.chatId, authInfo.accessTokenHeader).invokeAsync()
+                val members =
+                    api.listChatMembers(chat.chatId, accessTokenHeader).invokeAsync()
                 val membersArray = members
                     .map {
-                        val name = api.getUserByUserId(it.userId, authInfo.accessTokenHeader).invokeAsync()?.displayName ?: "[ ${it.userId} ]"
+                        val name = api.getUserByUserId(it.userId, accessTokenHeader)
+                            .invokeAsync()?.displayName ?: "[ ${it.userId} ]"
                         dao.insertUsers(User(it.userId, name))
                         // Исползуем то имя чата, которое выбрал currentUser при создании свойго чата или вступлении в чужой чат
-                        if (it.userId == userId) {
+                        if (it.userId == currentUser.value!!.userId) {
                             chatNames[it.chatId] = it.chatDisplayName
                         }
                         // находим и запоминаем системный чат
@@ -290,6 +281,35 @@ class MessengerRepository private constructor(private val context: Context):
             // сохраняем чаты и участников в базе данных
             dao.insertChats(*chatsArray)
             dao.insertMembers(*(allMembers.toTypedArray()))
+        }
+        catch (e: CallNotExecutedException) {
+            Log.w(logTag, "Request error: ${e.message}", e)
+        }
+        catch (e: Exception) {
+            Log.e(logTag, e.message, e)
+        }
+    }
+
+    suspend fun signIn(userId: String, password: String): Result<User> {
+        val previousUser = _currentUser.value
+        if (previousUser != null && previousUser.userId != userId) {
+            // пользователь поменялся - принудительно разлогиниваем предыдущего пользователя
+            signOut()
+        }
+        try {
+            // отправляем запрос Sign In на сервер
+            val authInfo = api.signIn(userId, PasswordInfo(password)).invokeAsync()
+            // запрашиваем данные пользователя
+            val userInfo = api.getUserByUserId(userId, authInfo.accessTokenHeader).invokeAsync() ?: return Result.Error(IllegalStateException("User not found"))
+            // обновляем даныне в настройках и локальной базе данных
+            val user = User(userInfo.userId, userInfo.displayName)
+            dao.insertUsers(user)
+
+            // запрашиваем данные о системном пользователе и сохраняем в базе
+            val systemUserInfo = api.getSystemUser(authInfo.accessTokenHeader).invokeAsync()
+            val systemUser = User(systemUserInfo.userId, systemUserInfo.displayName)
+            dao.insertUsers(systemUser)
+
             // сохраняем данные пользователя в настройках
             PreferenceManager
                 .getDefaultSharedPreferences(context)
@@ -299,6 +319,7 @@ class MessengerRepository private constructor(private val context: Context):
                 .putString(PREF_REFRESH_TOKEN, authInfo.refreshToken)
                 .apply()
             _currentUser.value = user
+            updateChatsList()
             return Result.Success(user)
         }
         catch (e: CallNotExecutedException) {
