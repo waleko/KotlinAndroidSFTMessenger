@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,8 +13,8 @@ import kotlinx.android.synthetic.main.others_message_item.view.*
 import ru.sft.kotlin.messenger.client.R
 import ru.sft.kotlin.messenger.client.api.NewMessageInfo
 import ru.sft.kotlin.messenger.client.data.entity.MessageWithMember
-import ru.sft.kotlin.messenger.client.util.colorByUserId
 import ru.sft.kotlin.messenger.client.util.formatTimeString
+import ru.sft.kotlin.messenger.client.util.getAutoColoredString
 import java.lang.IllegalArgumentException
 import java.util.*
 
@@ -160,6 +159,7 @@ class ChatAdapter(private val isSystemChat: Boolean, private val userId: String)
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
         val message = messages[position]
         val fromUser = message.memberDisplayName
+        val fromUserId = message.userId
         val dateTime = formatTimeString(Date(message.createdOn))
         val itemLayout = holder.itemLayout
 
@@ -168,10 +168,8 @@ class ChatAdapter(private val isSystemChat: Boolean, private val userId: String)
 
         if (holder.itemViewType == MessageViewType.OTHERS.ordinal)
         {
-            itemLayout.messageHeaderTextView.text = fromUser
-            itemLayout.messageHeaderTextView.setTextColor(
-                ContextCompat.getColor(holder.itemLayout.context, colorByUserId(fromUser))
-            )
+            itemLayout.messageHeaderTextView.text =
+                fromUser.getAutoColoredString(holder.itemLayout.context, fromUserId)
         }
 
         if (isSystemChat) {

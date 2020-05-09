@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.sft.kotlin.messenger.client.data.MessengerRepository
 import ru.sft.kotlin.messenger.client.data.entity.ChatWithMembers
@@ -27,5 +28,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             repository.signOut()
         }
+    }
+
+    fun updateMessages(chatId: Int) = viewModelScope.launch(Dispatchers.IO) {
+        repository.updateMessages(chatId)
     }
 }

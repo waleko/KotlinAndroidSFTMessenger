@@ -163,7 +163,7 @@ class MessengerRepository private constructor(private val context: Context):
             val accessToken = getAccessToken() ?: throw CallNotExecutedException("Unable to get access token")
             // запрашиваем свежие сообщения с сервера
             val messageInfo = api.sendMessage(chatId, newMessageInfo, accessToken.toBearer()).invokeAsync()
-            dao.insertMessages(Message(messageInfo))
+            dao.insertMessages(Message(messageInfo, chatId))
         }
         catch (e: CallNotExecutedException) {
             Log.w(logTag, "Request error: ${e.message}", e)
@@ -175,7 +175,7 @@ class MessengerRepository private constructor(private val context: Context):
 
     suspend fun updateMessages(chatId: Int) {
         try {
-            val lastMessageId = dao.lastChatMessage(chatId)
+            val lastMessageId = dao.lastChatMessageId(chatId)
             val accessToken = getAccessToken() ?: return
             // запрашиваем свежие сообщения с сервера
             val messagesInfo =
@@ -185,6 +185,7 @@ class MessengerRepository private constructor(private val context: Context):
                     Message(
                         it.messageId,
                         it.memberId,
+                        chatId,
                         it.text,
                         it.createdOn
                     )

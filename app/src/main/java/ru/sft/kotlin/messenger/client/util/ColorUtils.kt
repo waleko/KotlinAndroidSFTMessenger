@@ -1,13 +1,17 @@
 package ru.sft.kotlin.messenger.client.util
 
+import android.content.Context
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import androidx.core.content.ContextCompat
 import ru.sft.kotlin.messenger.client.R
 import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.math.absoluteValue
 
+
 val colors = listOf(
-    R.color.palette_amber,
-    R.color.palette_tangerine,
     R.color.palette_siena,
     R.color.palette_crimson,
     R.color.palette_fuchsia,
@@ -16,8 +20,7 @@ val colors = listOf(
     R.color.palette_purple,
     R.color.palette_blue,
     R.color.palette_skyblue,
-    R.color.palette_green,
-    R.color.palette_lemonyellow
+    R.color.palette_green
 )
 
 fun md5(s: String): BigInteger {
@@ -25,8 +28,29 @@ fun md5(s: String): BigInteger {
     return BigInteger(1, md.digest(s.toByteArray()))
 }
 
-fun colorByUserId(userId: String) : Int {
-    val i = md5(userId).toInt().absoluteValue % colors.size
+fun colorBySeed(seed: String) : Int {
+    val i = md5(seed).toInt().absoluteValue % colors.size
     return colors[i]
 }
 
+fun String.getColoredString(context: Context, colorId: Int): Spannable {
+    val color = ContextCompat.getColor(context, colorId)
+
+    val spannable: Spannable = SpannableString(this)
+    spannable.setSpan(
+        ForegroundColorSpan(color),
+        0,
+        spannable.length,
+        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+    )
+    return spannable
+}
+
+fun String.getAutoColoredString(context: Context, seed: String) : Spannable {
+    val colorId = colorBySeed(seed)
+    return getColoredString(context, colorId)
+}
+
+fun String.getAutoColoredString(context: Context, seed: Int) : Spannable {
+    return getAutoColoredString(context, seed.toString())
+}

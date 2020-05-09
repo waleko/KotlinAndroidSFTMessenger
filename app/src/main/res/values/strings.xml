@@ -29,4 +29,6 @@
     <string name="register_link">Register</string>
     <string name="join_chat">Join</string>
     <string name="appearance_header">Appearance</string>
+    <string name="no_messages">No messages</string>
+    <string name="user_pronoun">You</string>
 </resources>

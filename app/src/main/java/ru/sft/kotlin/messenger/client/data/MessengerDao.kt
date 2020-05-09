@@ -11,7 +11,7 @@ interface MessengerDao {
     fun allChats(): LiveData<List<Chat>>
 
     @Transaction
-    @Query("SELECT * FROM Chats ORDER BY name ASC")
+    @Query("SELECT C.*, M.memberId, M.text, M.createdOn, E.memberDisplayName, E.userId FROM Chats C LEFT JOIN Messages M ON M.id = (SELECT MAX(M.id) FROM Messages M WHERE M.chatId = C.id) LEFT JOIN Members E ON E.id = M.memberId ORDER BY createdOn DESC")
     fun allChatsWithMembers(): LiveData<List<ChatWithMembers>>
 
     @Query("SELECT Messages.* FROM Messages JOIN Members ON Members.id = Messages.memberId WHERE Members.chatId = :chatId ORDER BY createdOn ASC")
@@ -21,11 +21,14 @@ interface MessengerDao {
     fun allChatMessagesWithMembers(chatId: Int): LiveData<List<MessageWithMember>>
 
     @Transaction
-    @Query("SELECT * FROM Chats WHERE id = :chatId")
+    @Query("SELECT C.*, M.memberId, M.text, M.createdOn, E.memberDisplayName, E.userId FROM Chats C LEFT JOIN Messages M ON M.id = (SELECT MAX(M.id) FROM Messages M WHERE M.chatId = :chatId) LEFT JOIN Members E ON E.id = M.memberId WHERE C.id = :chatId")
     fun chatById(chatId: Int): LiveData<ChatWithMembers?>
 
     @Query("SELECT MAX(Messages.id) FROM Messages JOIN Members ON Members.id = Messages.memberId WHERE Members.chatId = :chatId")
-    fun lastChatMessage(chatId: Int): Int
+    fun lastChatMessageId(chatId: Int): Int
+
+    @Query("SELECT M.*, E.chatId, E.memberDisplayName, E.userId FROM Messages M JOIN Members E ON E.id = M.memberId WHERE M.id = (SELECT MAX(M.id) FROM Messages M JOIN Members E ON E.id = M.memberId WHERE E.chatId = :chatId)")
+    fun lastChatMessage(chatId: Int): MessageWithMember?
 
     @Query("SELECT count(*) FROM Messages")
     fun countMessages(): Int

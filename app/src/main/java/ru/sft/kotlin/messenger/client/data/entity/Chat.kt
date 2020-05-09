@@ -1,8 +1,6 @@
 package ru.sft.kotlin.messenger.client.data.entity
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import androidx.room.Relation
+import androidx.room.*
 
 @Entity(
     tableName = "Chats"
@@ -19,5 +17,16 @@ class ChatWithMembers (
     val isSystem: Boolean,
     val name: String,
     @Relation(parentColumn = "id", entityColumn = "chatId")
-    val members: List<Member>
+    val members: List<Member>,
+
+    @ColumnInfo(name = "text")
+    val lastMessageText: String?,
+    @ColumnInfo(name = "memberId")
+    val lastMessageMemberId: Int?,
+    @ColumnInfo(name = "createdOn")
+    val lastMessageCreatedOn: Long?,
+    @ColumnInfo(name = "memberDisplayName")
+    val lastMessageMemberDisplayName: String?,
+    @ColumnInfo(name = "userId")
+    val lastMessageUserId: String?
 )
