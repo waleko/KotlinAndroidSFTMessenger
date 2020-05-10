@@ -138,6 +138,11 @@ class MessengerRepository private constructor(private val context: Context):
         }
     }
 
+    @Synchronized
+    fun newAccessTokenToPrefs() {
+        updateAccessToken()
+    }
+
     suspend fun createMessage(message: Message) {
         dao.insertMessages(message)
     }
@@ -222,10 +227,26 @@ class MessengerRepository private constructor(private val context: Context):
         }
     }
 
-    suspend fun updateChatsList() {
+    suspend fun createChat(chatName: String): Result<ChatInfo> {
+        val accessToken = getAccessToken()
+        return if (accessToken != null) {
+            try {
+                val chatInfo = api.createChat(NewChatInfo(chatName), accessToken.toBearer()).invokeAsync()
+                Result.Success(chatInfo)
+            } catch (e: CallNotExecutedException) {
+                Log.w(logTag, "Request error: ${e.message}", e)
+                Result.Error(e)
+            } catch (e: Exception) {
+                Result.Error(e)
+            }
+        } else {
+            Result.Error(Exception("No access token"))
+        }
+    }
+
+    suspend fun updateChatsList(): Result<Boolean> {
         try {
-            // отправляем запрос Sign In на сервер
-            val accessToken = getAccessToken() ?: return
+            val accessToken = getAccessToken() ?: return Result.Error(Exception("AccessTokenIsNull"))
             val accessTokenHeader = accessToken.toBearer()
             // запрашиваем список чатов пользователя
             val chats = api.listChats(accessTokenHeader).invokeAsync()
@@ -242,6 +263,7 @@ class MessengerRepository private constructor(private val context: Context):
             // запрашиваем данные о системном пользователе и сохраняем в базе
             val systemUserInfo = api.getSystemUser(accessTokenHeader).invokeAsync()
             val systemUser = User(systemUserInfo.userId, systemUserInfo.displayName)
+            dao.insertUsers(systemUser)
 
             // запрашиваем участников чата для каждого чата
             chats.forEach { chat ->
@@ -281,13 +303,17 @@ class MessengerRepository private constructor(private val context: Context):
             // сохраняем чаты и участников в базе данных
             dao.insertChats(*chatsArray)
             dao.insertMembers(*(allMembers.toTypedArray()))
+            Log.v(logTag, "Chats update completed")
         }
         catch (e: CallNotExecutedException) {
             Log.w(logTag, "Request error: ${e.message}", e)
+            return Result.Error(e)
         }
         catch (e: Exception) {
             Log.e(logTag, e.message, e)
+            return Result.Error(e)
         }
+        return Result.Success(true)
     }
 
     suspend fun signIn(userId: String, password: String): Result<User> {

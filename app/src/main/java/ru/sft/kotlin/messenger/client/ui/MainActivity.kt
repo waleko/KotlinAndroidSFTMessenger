@@ -7,7 +7,6 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.view.*
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.startActivity
@@ -55,12 +54,8 @@ class MainActivity : AppCompatActivity() {
         })
 
         newChatButton.setOnClickListener {
-            // TODO: запустить Activity для создания нового чата
-            Toast.makeText(
-                this@MainActivity,
-                "TODO: запустить Activity для создания нового чата",
-                Toast.LENGTH_LONG
-            ).show()
+            val intent = Intent(this, CreateChatActivity::class.java)
+            startActivity(intent)
         }
 
         model.updateJobStart()
