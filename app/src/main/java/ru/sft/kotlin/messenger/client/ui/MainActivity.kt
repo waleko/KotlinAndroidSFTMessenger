@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.chat_item.view.*
+import kotlinx.coroutines.Job
 import ru.sft.kotlin.messenger.client.R
 import ru.sft.kotlin.messenger.client.data.entity.ChatWithMembers
 import ru.sft.kotlin.messenger.client.data.entity.User
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private var menu: Menu? = null
     private lateinit var adapter: RecyclerView.Adapter<UserChatsAdapter.UserChatsViewHolder>
     private lateinit var model: MainViewModel
+    private lateinit var job: Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,16 +43,15 @@ class MainActivity : AppCompatActivity() {
         chatsRecyclerView.adapter = adapter
 
         model.currentUser.observe(this, Observer { user ->
+            if (user != null)
+                model.updateJobStart()
+            else
+                model.updateJobStop()
+
             updateUi(user != null, menu)
         })
         model.currentUserChats.observe(this, Observer { chats ->
             (adapter as UserChatsAdapter).setUserChats(chats)
-            if (model.currentUser.value != null) {
-                chats.forEach {
-                    // TODO: load only one message (requires new server API)
-                    model.updateMessages(it.id)
-                }
-            }
         })
 
         newChatButton.setOnClickListener {
@@ -61,6 +62,13 @@ class MainActivity : AppCompatActivity() {
                 Toast.LENGTH_LONG
             ).show()
         }
+
+        model.updateJobStart()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        model.updateJobStop()
     }
 
     private fun showSettings() {
