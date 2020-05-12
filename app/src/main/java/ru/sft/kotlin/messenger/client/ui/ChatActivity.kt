@@ -46,7 +46,7 @@ class ChatActivity : AppCompatActivity() {
 
         title = model.chat.value?.name ?: "..."
 
-        adapter = ChatAdapter(isSystemChat, userId)
+        adapter = ChatAdapter(isSystemChat, userId, model)
         messagesRecyclerView.adapter = adapter
 
         model.chat.observe(this, Observer {
@@ -124,8 +124,9 @@ enum class MessageViewType
     OTHERS, MY
 }
 
-class ChatAdapter(private val isSystemChat: Boolean, private val userId: String) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
+class ChatAdapter(private val isSystemChat: Boolean, private val userId: String, private val chatViewModel: ChatViewModel) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
     class ChatViewHolder(val itemLayout: View) : RecyclerView.ViewHolder(itemLayout)
+    val joinRegex = Regex("Пользователь [\\S\\s]+? \\([\\S\\s]+?\\) приглашает вас в чат ([\\d]+). Используйте пароль '([\\S\\s]+?)'")
 
     // Cached messages
     private val messages = mutableListOf<MessageWithMember>()
@@ -162,7 +163,7 @@ class ChatAdapter(private val isSystemChat: Boolean, private val userId: String)
         val fromUserId = message.userId
         val dateTime = formatTimeString(Date(message.createdOn))
         val itemLayout = holder.itemLayout
-
+        val match = joinRegex.matchEntire(message.text)
         itemLayout.bodyTextView.text = message.text
         itemLayout.timeTextView.text = dateTime
 
@@ -172,11 +173,15 @@ class ChatAdapter(private val isSystemChat: Boolean, private val userId: String)
                 fromUser.getAutoColoredString(holder.itemLayout.context, fromUserId)
         }
 
-        if (isSystemChat) {
-//             TODO: в случае системного чата надо определять, является ли сообщение приглашением, и отображать кнопку "Join" под текстом сообщения
+        if (isSystemChat && match != null) {
+            itemLayout.joinButton.visibility = View.VISIBLE
+            itemLayout.joinButton.setOnClickListener {
+                chatViewModel.joinChat(match.groupValues[1].toInt(), match.groupValues[2])
+            }
+//             в случае системного чата надо определять, является ли сообщение приглашением, и отображать кнопку "Join" под текстом сообщения
 //             Для этого придётся проверять, что сообщение от системного пользователя и использовать регулярное выражение, т.к. другого способа API не предоставляет
 //             Сделать кнопку видимой можно так: itemLayout.joinButton.visibility = View.VISIBLE
-//             TODO: Также надо добавить обработчик нажатия на кнопку Join
+//             Также надо добавить обработчик нажатия на кнопку Join
         }
 
         itemLayout.setOnClickListener {

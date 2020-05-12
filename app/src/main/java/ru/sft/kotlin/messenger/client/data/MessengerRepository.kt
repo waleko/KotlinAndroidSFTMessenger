@@ -20,8 +20,8 @@ import ru.sft.kotlin.messenger.client.util.Result
 import ru.sft.kotlin.messenger.client.util.SingletonHolder
 import ru.sft.kotlin.messenger.client.util.invokeAsync
 
-class MessengerRepository private constructor(private val context: Context):
-                          SharedPreferences.OnSharedPreferenceChangeListener, Authenticator {
+class MessengerRepository private constructor(private val context: Context) :
+    SharedPreferences.OnSharedPreferenceChangeListener, Authenticator {
 
     companion object : SingletonHolder<MessengerRepository, Context>({
         MessengerRepository(it.applicationContext)
@@ -46,7 +46,8 @@ class MessengerRepository private constructor(private val context: Context):
         preferences.registerOnSharedPreferenceChangeListener(this)
         preferences.getString(PREF_USER_ID, null)?.let {
             runBlocking {
-                _currentUser.value =  dao.getUser(it) ?: throw IllegalStateException("Cannot load current user from database")
+                _currentUser.value = dao.getUser(it)
+                    ?: throw IllegalStateException("Cannot load current user from database")
             }
         }
     }
@@ -112,15 +113,18 @@ class MessengerRepository private constructor(private val context: Context):
 
     @Synchronized
     private fun updateAccessToken(): String? {
-        val accessToken = getAccessToken() ?: throw IllegalStateException("No access token to refresh")
-        val refreshToken = getRefreshToken() ?: throw IllegalStateException("No refresh token for refresh")
+        val accessToken =
+            getAccessToken() ?: throw IllegalStateException("No access token to refresh")
+        val refreshToken =
+            getRefreshToken() ?: throw IllegalStateException("No refresh token for refresh")
         try {
             val response = refreshTokenApi.refreshAccessToken(
                 accessToken.toBearer(),
                 RefreshTokenInfo(refreshToken)
             ).execute()
             if (response.isSuccessful) {
-                val authInfo = response.body() ?: throw IllegalStateException("Empty response during refresh")
+                val authInfo =
+                    response.body() ?: throw IllegalStateException("Empty response during refresh")
                 PreferenceManager
                     .getDefaultSharedPreferences(context)
                     .edit()
@@ -131,8 +135,7 @@ class MessengerRepository private constructor(private val context: Context):
             }
             Log.w(logTag, "Error during refresh token update: ${response.errorBody()}")
             return null
-        }
-        catch (t: Throwable) {
+        } catch (t: Throwable) {
             Log.w(logTag, "Cannot update refresh token", t)
             return null
         }
@@ -163,17 +166,32 @@ class MessengerRepository private constructor(private val context: Context):
         return dao.chatById(chatId)
     }
 
+    suspend fun joinChat(chatId: Int, joinChatInfo: JoinChatInfo) {
+        try {
+            if (chatById(chatId).value != null) // Уже существует такой чат
+                return
+            val accessToken =
+                getAccessToken() ?: throw CallNotExecutedException("Unable to get access token")
+            api.joinToChat(chatId, joinChatInfo, accessToken.toBearer()).invokeAsync()
+            updateChatsList()
+        } catch (e: CallNotExecutedException) {
+            Log.w(logTag, "Request error: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e(logTag, e.message, e)
+        }
+    }
+
     suspend fun sendMessage(chatId: Int, newMessageInfo: NewMessageInfo) {
         try {
-            val accessToken = getAccessToken() ?: throw CallNotExecutedException("Unable to get access token")
+            val accessToken =
+                getAccessToken() ?: throw CallNotExecutedException("Unable to get access token")
             // запрашиваем свежие сообщения с сервера
-            val messageInfo = api.sendMessage(chatId, newMessageInfo, accessToken.toBearer()).invokeAsync()
+            val messageInfo =
+                api.sendMessage(chatId, newMessageInfo, accessToken.toBearer()).invokeAsync()
             dao.insertMessages(Message(messageInfo, chatId))
-        }
-        catch (e: CallNotExecutedException) {
+        } catch (e: CallNotExecutedException) {
             Log.w(logTag, "Request error: ${e.message}", e)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             Log.e(logTag, e.message, e)
         }
     }
@@ -198,11 +216,9 @@ class MessengerRepository private constructor(private val context: Context):
                 .toTypedArray()
             // сохраняем в базу данных
             dao.insertMessages(*messages)
-        }
-        catch (e: CallNotExecutedException) {
+        } catch (e: CallNotExecutedException) {
             Log.w(logTag, "Request error: ${e.message}", e)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             Log.e(logTag, e.message, e)
         }
     }
@@ -231,7 +247,8 @@ class MessengerRepository private constructor(private val context: Context):
         val accessToken = getAccessToken()
         return if (accessToken != null) {
             try {
-                val chatInfo = api.createChat(NewChatInfo(chatName), accessToken.toBearer()).invokeAsync()
+                val chatInfo =
+                    api.createChat(NewChatInfo(chatName), accessToken.toBearer()).invokeAsync()
                 Result.Success(chatInfo)
             } catch (e: CallNotExecutedException) {
                 Log.w(logTag, "Request error: ${e.message}", e)
@@ -246,7 +263,8 @@ class MessengerRepository private constructor(private val context: Context):
 
     suspend fun updateChatsList(): Result<Boolean> {
         try {
-            val accessToken = getAccessToken() ?: return Result.Error(Exception("AccessTokenIsNull"))
+            val accessToken =
+                getAccessToken() ?: return Result.Error(Exception("AccessTokenIsNull"))
             val accessTokenHeader = accessToken.toBearer()
             // запрашиваем список чатов пользователя
             val chats = api.listChats(accessTokenHeader).invokeAsync()
@@ -258,7 +276,7 @@ class MessengerRepository private constructor(private val context: Context):
             // NB! Сиситемный чат отличается тем, что из него нельзя выйти и в него нельзя приглашать.
             // Кроме того для него требуется специальная обработка сообщений с приглашениями в чаты
             // других пользователей. Системным является чат, в котором есть системный пользователь.
-            var systemChatId : Int = -1
+            var systemChatId: Int = -1
 
             // запрашиваем данные о системном пользователе и сохраняем в базе
             val systemUserInfo = api.getSystemUser(accessTokenHeader).invokeAsync()
@@ -304,12 +322,10 @@ class MessengerRepository private constructor(private val context: Context):
             dao.insertChats(*chatsArray)
             dao.insertMembers(*(allMembers.toTypedArray()))
             Log.v(logTag, "Chats update completed")
-        }
-        catch (e: CallNotExecutedException) {
+        } catch (e: CallNotExecutedException) {
             Log.w(logTag, "Request error: ${e.message}", e)
             return Result.Error(e)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             Log.e(logTag, e.message, e)
             return Result.Error(e)
         }
@@ -326,7 +342,8 @@ class MessengerRepository private constructor(private val context: Context):
             // отправляем запрос Sign In на сервер
             val authInfo = api.signIn(userId, PasswordInfo(password)).invokeAsync()
             // запрашиваем данные пользователя
-            val userInfo = api.getUserByUserId(userId, authInfo.accessTokenHeader).invokeAsync() ?: return Result.Error(IllegalStateException("User not found"))
+            val userInfo = api.getUserByUserId(userId, authInfo.accessTokenHeader).invokeAsync()
+                ?: return Result.Error(IllegalStateException("User not found"))
             // обновляем даныне в настройках и локальной базе данных
             val user = User(userInfo.userId, userInfo.displayName)
             dao.insertUsers(user)
@@ -347,12 +364,10 @@ class MessengerRepository private constructor(private val context: Context):
             _currentUser.value = user
             updateChatsList()
             return Result.Success(user)
-        }
-        catch (e: CallNotExecutedException) {
+        } catch (e: CallNotExecutedException) {
             Log.w(logTag, "Request error: ${e.message}", e)
             return Result.Error(e)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             Log.e(logTag, e.message, e)
             return Result.Error(e)
         }
@@ -400,7 +415,11 @@ class MessengerRepository private constructor(private val context: Context):
         }
     }
 
-    private fun getAccessToken() = PreferenceManager.getDefaultSharedPreferences(context).getString(PREF_ACCESS_TOKEN, null)
-    private fun getRefreshToken() = PreferenceManager.getDefaultSharedPreferences(context).getString(PREF_REFRESH_TOKEN, null)
+    private fun getAccessToken() =
+        PreferenceManager.getDefaultSharedPreferences(context).getString(PREF_ACCESS_TOKEN, null)
+
+    private fun getRefreshToken() =
+        PreferenceManager.getDefaultSharedPreferences(context).getString(PREF_REFRESH_TOKEN, null)
+
     private fun String.toBearer() = "Bearer $this"
 }

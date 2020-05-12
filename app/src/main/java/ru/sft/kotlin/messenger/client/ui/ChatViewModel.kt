@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ru.sft.kotlin.messenger.client.api.JoinChatInfo
 import ru.sft.kotlin.messenger.client.api.NewMessageInfo
 import ru.sft.kotlin.messenger.client.data.MessengerRepository
 import ru.sft.kotlin.messenger.client.data.entity.Message
@@ -39,6 +40,10 @@ class ChatViewModel(
 
     fun sendMessage(chatId: Int, message: NewMessageInfo) = viewModelScope.launch(Dispatchers.IO) {
         repository.sendMessage(chatId, message)
+    }
+
+    fun joinChat(chatId: Int, secret: String) = viewModelScope.launch(Dispatchers.IO) {
+        repository.joinChat(chatId, JoinChatInfo(defaultName = null, secret = secret))
     }
 }
 
