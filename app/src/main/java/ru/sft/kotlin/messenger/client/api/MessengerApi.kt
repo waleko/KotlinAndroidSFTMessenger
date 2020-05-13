@@ -17,8 +17,8 @@ data class InviteChatInfo(val userId: String)
 data class MessageInfo(val messageId: Int, val memberId: Int, var text: String, val createdOn: Long)
 
 data class NewMessageInfo(var text: String)
-data class MemberInfo(val memberId: Int, val chatId: Int,
-                      val chatDisplayName: String, val memberDisplayName: String, val userId: String)
+data class MemberInfo(val memberId: Int, val chatId: Int, val chatDisplayName: String,
+                      val memberDisplayName: String, val userId: String, val isActive: Boolean)
 
 data class RefreshTokenInfo(val refreshToken: String)
 
@@ -65,6 +65,12 @@ interface MessengerApi {
     fun joinToChat(
         @Path("chatId") chatId: Int,
         @Body joinInfo: JoinChatInfo,
+        @Header("Authorization") accessTokenHeader: String
+    ): Call<Map<String, String>>
+
+    @POST("/v1/chats/{chatId}/leave")
+    fun leaveChat(
+        @Path("chatId") chatId: Int,
         @Header("Authorization") accessTokenHeader: String
     ): Call<Map<String, String>>
 
