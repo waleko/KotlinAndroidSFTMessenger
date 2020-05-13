@@ -14,11 +14,22 @@ data class ChatInfo(val chatId: Int, val defaultName: String)
 data class NewChatInfo(val defaultName: String)
 data class JoinChatInfo(val defaultName: String?, val secret: String)
 data class InviteChatInfo(val userId: String)
-data class MessageInfo(val messageId: Int, val memberId: Int, var text: String, val createdOn: Long)
+data class MessageInfo(
+    val messageId: Int,
+    val memberId: Int,
+    var text: String,
+    val createdOn: Long
+)
 
 data class NewMessageInfo(var text: String)
-data class MemberInfo(val memberId: Int, val chatId: Int, val chatDisplayName: String,
-                      val memberDisplayName: String, val userId: String, val isActive: Boolean)
+data class MemberInfo(
+    val memberId: Int,
+    val chatId: Int,
+    val chatDisplayName: String,
+    val memberDisplayName: String,
+    val userId: String,
+    val isActive: Boolean
+)
 
 data class RefreshTokenInfo(val refreshToken: String)
 
