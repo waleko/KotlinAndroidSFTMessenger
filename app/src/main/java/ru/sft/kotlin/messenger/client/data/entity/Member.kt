@@ -32,4 +32,5 @@ class Member(
     val chatId: Int,
     val chatDisplayName: String,
     val memberDisplayName: String,
-    val userId: String)
+    val userId: String,
+    val isActive: Boolean)

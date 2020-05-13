@@ -61,6 +61,9 @@ class MessengerRepository private constructor(private val context: Context):
     }
 
     private val okHttpClient = with(OkHttpClient.Builder()) {
+        // Добавляем специальный обработчик на случай ответа 401 Unauthorized
+        // В этом случае надо будет обновить access token используя refresh token
+        // См. метод authenticate ниже
         authenticator(this@MessengerRepository)
         build()
     }
@@ -240,7 +243,8 @@ class MessengerRepository private constructor(private val context: Context):
                             it.chatId,
                             it.chatDisplayName,
                             it.memberDisplayName,
-                            it.userId
+                            it.userId,
+                            it.isActive
                         )
                     }.toTypedArray()
                 allMembers.addAll(membersArray)
