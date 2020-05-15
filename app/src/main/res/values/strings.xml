@@ -36,4 +36,7 @@
     <string name="no_messages">No messages</string>
     <string name="user_pronoun">You</string>
     <string name="update_chat_after_creatin_failed">Failed to update chats after successful creation</string>
+    <string name="enter_user_id_hint">Enter user ID</string>
+    <string name="title_activity_invite">Invite to chat</string>
+    <string name="select_user_to_add_to_chat">Select user to add to chat:</string>
 </resources>

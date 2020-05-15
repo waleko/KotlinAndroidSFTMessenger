@@ -183,7 +183,7 @@ class UserChatsAdapter(var currentUser: LiveData<User?>) :
         val name = if (chat.lastMessageUserId == currentUser.value!!.userId)
             context.getString(R.string.user_pronoun).getColoredString(context, R.color.dark_gray)
         else
-            chat.lastMessageMemberDisplayName!!.getAutoColoredString(context, chat.lastMessageUserId!!)
+            User(chat.lastMessageUserId!!, chat.lastMessageMemberDisplayName!!).getColored(context)
 
         val delimiter = SpannableString(": ")
         val text = SpannableString(chat.lastMessageText)

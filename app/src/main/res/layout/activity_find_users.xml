@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/messagesCoordinatorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/upperBox"
+        android:fitsSystemWindows="true">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/usersRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical" />
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+    <LinearLayout
+        android:id="@+id/upperBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/white"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/chatHeaderTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="11dp"
+            android:maxLines="1"
+            android:text="@string/select_user_to_add_to_chat"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/text_size_large" />
+
+        <EditText
+            android:id="@+id/searchText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="enterUserId"
+            android:ems="10"
+            android:hint="@string/enter_user_id_hint"
+            android:inputType="textPersonName"
+            android:text="" />
+    </LinearLayout>
+</RelativeLayout>

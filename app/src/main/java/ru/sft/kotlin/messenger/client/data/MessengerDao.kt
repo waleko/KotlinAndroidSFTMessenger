@@ -80,4 +80,7 @@ interface MessengerDao {
 
     @Query("SELECT * FROM Users WHERE userId = :userId")
     suspend fun getUser(userId: String): User?
+
+    @Query("SELECT * FROM Users WHERE userId LIKE '%' || :search_query || '%' OR displayName LIKE '%' || :search_query || '%' ORDER BY displayName ASC")
+    fun findUsers(search_query: String): List<User>
 }

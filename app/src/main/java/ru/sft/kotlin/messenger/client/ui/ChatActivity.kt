@@ -1,5 +1,6 @@
 package ru.sft.kotlin.messenger.client.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
@@ -13,8 +14,8 @@ import kotlinx.android.synthetic.main.others_message_item.view.*
 import ru.sft.kotlin.messenger.client.R
 import ru.sft.kotlin.messenger.client.api.NewMessageInfo
 import ru.sft.kotlin.messenger.client.data.entity.MessageWithMember
+import ru.sft.kotlin.messenger.client.data.entity.User
 import ru.sft.kotlin.messenger.client.util.formatTimeString
-import ru.sft.kotlin.messenger.client.util.getAutoColoredString
 import java.lang.IllegalArgumentException
 import java.util.*
 
@@ -23,6 +24,7 @@ class ChatActivity : AppCompatActivity() {
     private var menu: Menu? = null
     private lateinit var adapter: ChatAdapter
     private lateinit var model: ChatViewModel
+    var chatId = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +32,7 @@ class ChatActivity : AppCompatActivity() {
         // Показываем кнопку Back в заголовке, также надо задать android:parentActivityName в AndroidManifest.xml
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val chatId = intent.getIntExtra("chatId", -1)
+        chatId = intent.getIntExtra("chatId", -1)
         val isSystemChat = intent.getBooleanExtra("isSystemChat", false)
 
         messagesRecyclerView.layoutManager = LinearLayoutManager(this).apply {
@@ -110,12 +112,9 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun inviteToChat() {
-        // TODO: запустить Activity для поиска и ввода userId приглашаемого человека
-        Toast.makeText(
-            this,
-            "TODO: запустить Activity для поиска и ввода userId приглашаемого человека",
-            Toast.LENGTH_LONG
-        ).show()
+        val intent = Intent(this, FindUsersActivity::class.java)
+        intent.putExtra("chatId", chatId)
+        startActivity(intent)
     }
 }
 
@@ -169,8 +168,7 @@ class ChatAdapter(private val isSystemChat: Boolean, private val userId: String,
 
         if (holder.itemViewType == MessageViewType.OTHERS.ordinal)
         {
-            itemLayout.messageHeaderTextView.text =
-                fromUser.getAutoColoredString(holder.itemLayout.context, fromUserId)
+            itemLayout.messageHeaderTextView.text = User(fromUserId, fromUser).getColored(itemLayout.context)
         }
 
         if (isSystemChat && match != null) {

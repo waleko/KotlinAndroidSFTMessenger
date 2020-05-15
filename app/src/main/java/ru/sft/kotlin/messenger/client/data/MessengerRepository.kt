@@ -141,11 +141,6 @@ class MessengerRepository private constructor(private val context: Context) :
         }
     }
 
-    @Synchronized
-    fun newAccessTokenToPrefs() {
-        updateAccessToken()
-    }
-
     suspend fun createMessage(message: Message) {
         dao.insertMessages(message)
     }
@@ -164,6 +159,10 @@ class MessengerRepository private constructor(private val context: Context) :
 
     fun chatById(chatId: Int): LiveData<ChatWithMembers?> {
         return dao.chatById(chatId)
+    }
+
+    fun getUsersByPartOfName(part: String): List<User> {
+        return dao.findUsers(part)
     }
 
     suspend fun joinChat(chatId: Int, joinChatInfo: JoinChatInfo) {
@@ -196,6 +195,25 @@ class MessengerRepository private constructor(private val context: Context) :
         }
     }
 
+    suspend fun sendInvite(chatId: Int, userId: String): Result<Boolean> {
+        try {
+            Log.i("MessengerRepository", "invite to chat $chatId pending to user $userId")
+            val accessToken = getAccessToken() ?: throw CallNotExecutedException("Unable to get access token")
+            val invite = InviteChatInfo(userId)
+            api.inviteToChat(chatId, invite, accessToken.toBearer()).invokeAsync()
+            Log.i("MessengerRepository", "invited successful!")
+            return Result.Success(true)
+        }
+        catch (e: CallNotExecutedException) {
+            Log.w(logTag, "Request error: ${e.message}", e)
+            return Result.Error(e)
+        }
+        catch (e: Exception) {
+            Log.e(logTag, e.message, e)
+            return Result.Error(e)
+        }
+    }
+
     suspend fun updateMessages(chatId: Int) {
         try {
             val lastMessageId = dao.lastChatMessageId(chatId)
@@ -216,6 +234,22 @@ class MessengerRepository private constructor(private val context: Context) :
                 .toTypedArray()
             // сохраняем в базу данных
             dao.insertMessages(*messages)
+        } catch (e: CallNotExecutedException) {
+            Log.w(logTag, "Request error: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e(logTag, e.message, e)
+        }
+    }
+
+    suspend fun updateUsers() {
+        try {
+            val accessToken = getAccessToken() ?: return
+            // запрашиваем свежие сообщения с сервера
+            val usersInfo =
+                api.findUsersByPartOfName(accessToken.toBearer(), "").invokeAsync()
+            val users = usersInfo.map { User(it) }.toTypedArray()
+            // сохраняем в базу данных
+            dao.insertUsers(*users)
         } catch (e: CallNotExecutedException) {
             Log.w(logTag, "Request error: ${e.message}", e)
         } catch (e: Exception) {
