@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -103,12 +104,19 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun leaveChatAndFinish() {
-        // TODO: покинуть чат, вернуться в MainActivity
-        Toast.makeText(
-            this,
-            "TODO: покинуть чат, вернуться в MainActivity",
-            Toast.LENGTH_LONG
-        ).show()
+        AlertDialog.Builder(this).apply {
+            setTitle("Leave the chat")
+            val dialogView = View.inflate(this@ChatActivity, R.layout.leave_chat_dialog, null)
+            setView(dialogView)
+            setPositiveButton("Yes") { dialog, _ ->
+                model.leaveChat(chatId)
+                dialog.dismiss()
+                finish()
+            }
+            setNegativeButton("No") { dialog, _ ->
+                dialog.cancel()
+            }
+        }.show()
     }
 
     private fun inviteToChat() {
@@ -168,7 +176,7 @@ class ChatAdapter(private val isSystemChat: Boolean, private val userId: String,
 
         if (holder.itemViewType == MessageViewType.OTHERS.ordinal)
         {
-            itemLayout.messageHeaderTextView.text = User(fromUserId, fromUser).getColored(itemLayout.context)
+            itemLayout.messageHeaderTextView.text = User(fromUserId, fromUser).getColored(itemLayout.context, message.isMemberActive)
         }
 
         if (isSystemChat && match != null) {

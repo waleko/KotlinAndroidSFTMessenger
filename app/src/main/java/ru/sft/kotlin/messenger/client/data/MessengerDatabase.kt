@@ -4,11 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import ru.sft.kotlin.messenger.client.data.entity.*
 import ru.sft.kotlin.messenger.client.util.SingletonHolder
-import ru.sft.kotlin.messenger.client.data.entity.Chat
-import ru.sft.kotlin.messenger.client.data.entity.Member
-import ru.sft.kotlin.messenger.client.data.entity.Message
-import ru.sft.kotlin.messenger.client.data.entity.User
 
 @Database(
     entities = [

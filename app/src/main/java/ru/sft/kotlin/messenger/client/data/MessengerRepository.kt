@@ -180,6 +180,25 @@ class MessengerRepository private constructor(private val context: Context) :
         }
     }
 
+    suspend fun leaveChat(chatId: Int) {
+        try {
+            val accessToken =
+                getAccessToken() ?: throw CallNotExecutedException("Unable to get access token")
+            val response = api.leaveChat(chatId, accessToken.toBearer()).invokeAsync()
+            if (response["status"]?.equals("OK") != true)
+                throw CallNotExecutedException("Non-ok status (${response["status"] ?: "<no status>"})")
+            Log.i(logTag, "Left the chat #$chatId")
+            dao.deleteMessagesByChatId(chatId)
+            dao.deleteMembersByChatId(chatId)
+            dao.deleteChatById(chatId)
+            updateChatsList()
+        } catch (e: CallNotExecutedException) {
+            Log.w(logTag, "Request error: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e(logTag, e.message, e)
+        }
+    }
+
     suspend fun sendMessage(chatId: Int, newMessageInfo: NewMessageInfo) {
         try {
             val accessToken =

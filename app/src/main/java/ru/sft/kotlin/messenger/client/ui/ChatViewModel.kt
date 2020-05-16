@@ -45,6 +45,10 @@ class ChatViewModel(
     fun joinChat(chatId: Int, secret: String) = viewModelScope.launch(Dispatchers.IO) {
         repository.joinChat(chatId, JoinChatInfo(defaultName = null, secret = secret))
     }
+
+    fun leaveChat(chatId: Int) = viewModelScope.launch(Dispatchers.IO) {
+        repository.leaveChat(chatId)
+    }
 }
 
 class ChatViewModelFactory(

@@ -17,7 +17,7 @@ interface MessengerDao {
     @Query("SELECT Messages.* FROM Messages JOIN Members ON Members.id = Messages.memberId WHERE Members.chatId = :chatId ORDER BY createdOn ASC")
     fun allChatMessages(chatId: Int): LiveData<List<Message>>
 
-    @Query("SELECT M.*, E.chatId, E.memberDisplayName, E.userId FROM Messages M JOIN Members E ON E.id = M.memberId WHERE E.chatId = :chatId ORDER BY createdOn ASC")
+    @Query("SELECT M.*, E.chatId, E.memberDisplayName, E.userId, E.isActive FROM Messages M JOIN Members E ON E.id = M.memberId WHERE E.chatId = :chatId ORDER BY createdOn ASC")
     fun allChatMessagesWithMembers(chatId: Int): LiveData<List<MessageWithMember>>
 
     @Transaction
@@ -27,7 +27,7 @@ interface MessengerDao {
     @Query("SELECT MAX(Messages.id) FROM Messages JOIN Members ON Members.id = Messages.memberId WHERE Members.chatId = :chatId")
     fun lastChatMessageId(chatId: Int): Int
 
-    @Query("SELECT M.*, E.chatId, E.memberDisplayName, E.userId FROM Messages M JOIN Members E ON E.id = M.memberId WHERE M.id = (SELECT MAX(M.id) FROM Messages M JOIN Members E ON E.id = M.memberId WHERE E.chatId = :chatId)")
+    @Query("SELECT M.*, E.chatId, E.memberDisplayName, E.userId, E.isActive FROM Messages M JOIN Members E ON E.id = M.memberId WHERE M.id = (SELECT MAX(M.id) FROM Messages M JOIN Members E ON E.id = M.memberId WHERE E.chatId = :chatId)")
     fun lastChatMessage(chatId: Int): MessageWithMember?
 
     @Query("SELECT count(*) FROM Messages")
@@ -57,7 +57,7 @@ interface MessengerDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertChats(vararg chats: Chat)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMembers(vararg members: Member)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -83,4 +83,13 @@ interface MessengerDao {
 
     @Query("SELECT * FROM Users WHERE userId LIKE '%' || :search_query || '%' OR displayName LIKE '%' || :search_query || '%' ORDER BY displayName ASC")
     fun findUsers(search_query: String): List<User>
+
+    @Query("DELETE FROM Messages WHERE chatId = :chatId")
+    suspend fun deleteMessagesByChatId(chatId: Int)
+
+    @Query("DELETE FROM Members WHERE chatId = :chatId")
+    suspend fun deleteMembersByChatId(chatId: Int)
+
+    @Query("DELETE FROM Chats WHERE id = :chatId")
+    suspend fun deleteChatById(chatId: Int)
 }

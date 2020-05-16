@@ -9,5 +9,5 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:layout_margin="20dp"
-        android:text="@string/sign_out_confirm" />
+        android:text="@string/leave_chat_confirm" />
 </LinearLayout>

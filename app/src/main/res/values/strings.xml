@@ -39,4 +39,6 @@
     <string name="enter_user_id_hint">Enter user ID</string>
     <string name="title_activity_invite">Invite to chat</string>
     <string name="select_user_to_add_to_chat">Select user to add to chat:</string>
+    <string name="sign_out_confirm">Do you really want to Sign Out?</string>
+    <string name="leave_chat_confirm">Do you really want to leave the chat?</string>
 </resources>

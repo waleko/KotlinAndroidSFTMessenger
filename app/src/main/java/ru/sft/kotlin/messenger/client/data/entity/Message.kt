@@ -48,5 +48,7 @@ class MessageWithMember (
     val createdOn: Long,
     val chatId: Int,
     val memberDisplayName: String,
-    val userId: String
+    val userId: String,
+    @ColumnInfo(name = "isActive")
+    val isMemberActive: Boolean
 )

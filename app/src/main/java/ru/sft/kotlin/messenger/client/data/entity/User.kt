@@ -18,5 +18,6 @@ data class User (
         userInfo.displayName
     )
 
-    fun getColored(context: Context) : Spannable = displayName.getAutoColoredString(context, userId)
+    fun getColored(context: Context, isActive: Boolean = true) : Spannable =
+        displayName.getAutoColoredString(context, userId, isActive)
 }

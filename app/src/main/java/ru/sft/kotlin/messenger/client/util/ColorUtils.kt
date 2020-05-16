@@ -1,9 +1,12 @@
 package ru.sft.kotlin.messenger.client.util
 
 import android.content.Context
+import android.graphics.Color
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
+import android.text.style.StrikethroughSpan
 import androidx.core.content.ContextCompat
 import ru.sft.kotlin.messenger.client.R
 import java.math.BigInteger
@@ -33,8 +36,18 @@ fun colorBySeed(seed: String) : Int {
     return colors[i]
 }
 
-fun String.getColoredString(context: Context, colorId: Int): Spannable {
-    val color = ContextCompat.getColor(context, colorId)
+fun darkenColor(color: Int, gray: Int = 30): Int {
+    val red = (Color.red(color) + gray) / 2
+    val green = (Color.green(color) + gray) / 2
+    val blue = (Color.blue(color) + gray) / 2
+
+    return Color.rgb(red, green, blue)
+}
+
+fun String.getColoredString(context: Context, colorId: Int, isActive: Boolean): Spannable {
+    var color = ContextCompat.getColor(context, colorId)
+    if(!isActive)
+        color = darkenColor(color)
 
     val spannable: Spannable = SpannableString(this)
     spannable.setSpan(
@@ -46,11 +59,11 @@ fun String.getColoredString(context: Context, colorId: Int): Spannable {
     return spannable
 }
 
-fun String.getAutoColoredString(context: Context, seed: String) : Spannable {
+fun String.getAutoColoredString(context: Context, seed: String, isActive: Boolean = true) : Spannable {
     val colorId = colorBySeed(seed)
-    return getColoredString(context, colorId)
+    return getColoredString(context, colorId, isActive)
 }
 
-fun String.getAutoColoredString(context: Context, seed: Int) : Spannable {
-    return getAutoColoredString(context, seed.toString())
+fun String.getAutoColoredString(context: Context, seed: Int, isActive: Boolean = true) : Spannable {
+    return getAutoColoredString(context, seed.toString(), isActive)
 }
