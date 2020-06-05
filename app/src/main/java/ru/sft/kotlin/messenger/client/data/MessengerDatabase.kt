@@ -14,7 +14,7 @@ import ru.sft.kotlin.messenger.client.util.SingletonHolder
         Member::class,
         Message::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MessengerDatabase : RoomDatabase() {
@@ -24,7 +24,7 @@ abstract class MessengerDatabase : RoomDatabase() {
             it.applicationContext,
             MessengerDatabase::class.java,
             "messenger.db"
-        ).build()
+        ).addMigrations(MIGRATION_1_2).build()
     })
 
     abstract fun dao(): MessengerDao

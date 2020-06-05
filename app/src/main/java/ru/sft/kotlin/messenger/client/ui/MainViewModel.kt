@@ -40,11 +40,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             delay(500)
             while (isActive) {
                 println("job_check")
-                if (currentUserChats.value == null)
-                    continue
-                currentUserChats.value!!.forEach {
-                    // TODO: load only one message (requires new server API)
-                    repository.updateMessages(it.id)
+                if (currentUserChats.value != null) {
+                    currentUserChats.value!!.forEach {
+                        // TODO: load only one message (requires new server API)
+                        repository.updateMessages(it.id)
+                    }
                 }
                 delay(10000)
             }
@@ -52,10 +52,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateJobStop() = viewModelScope.launch(Dispatchers.IO) {
-        if (job == null)
-            return@launch
-        println("job_stop")
-        job!!.cancelAndJoin()
+        job?.let{
+            println("job_stop")
+            it.cancelAndJoin()
+        }
         job = null
     }
 

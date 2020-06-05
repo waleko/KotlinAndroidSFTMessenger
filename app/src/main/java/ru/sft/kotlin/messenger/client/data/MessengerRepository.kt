@@ -260,12 +260,12 @@ class MessengerRepository private constructor(private val context: Context) :
         }
     }
 
-    suspend fun updateUsers() {
+    suspend fun updateUsers(part: String = "") {
         try {
             val accessToken = getAccessToken() ?: return
             // запрашиваем свежие сообщения с сервера
             val usersInfo =
-                api.findUsersByPartOfName(accessToken.toBearer(), "").invokeAsync()
+                api.findUsersByPartOfName(accessToken.toBearer(), part).invokeAsync()
             val users = usersInfo.map { User(it) }.toTypedArray()
             // сохраняем в базу данных
             dao.insertUsers(*users)

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_find_users.*
 import kotlinx.android.synthetic.main.users_item.view.*
+import ru.sft.kotlin.messenger.client.MINIMAL_USER_ID_LENGTH
 import ru.sft.kotlin.messenger.client.R
 import ru.sft.kotlin.messenger.client.data.entity.User
 import ru.sft.kotlin.messenger.client.util.afterTextChanged
@@ -53,12 +54,30 @@ class FindUsersActivity : AppCompatActivity() {
 class UsersAdapter(private val parent: FindUsersActivity) : RecyclerView.Adapter<UsersAdapter.UsersViewHolder>() {
     class UsersViewHolder(val itemLayout: View) : RecyclerView.ViewHolder(itemLayout)
 
+    private val noMatchingTextView = parent.no_matching_view
+    private val notEnoughCharsTextView = parent.not_enough_view
+
     private val users = mutableListOf<User>()
 
     fun setUsers(users: List<User>) {
         this.users.clear()
         this.users.addAll(users)
         notifyDataSetChanged()
+
+        if (users.isEmpty()) {
+            val searchTextViewLength = parent.searchText.text.length
+
+            if (searchTextViewLength < MINIMAL_USER_ID_LENGTH) {
+                notEnoughCharsTextView.visibility = View.VISIBLE
+                noMatchingTextView.visibility = View.GONE
+            } else {
+                notEnoughCharsTextView.visibility = View.GONE
+                noMatchingTextView.visibility = View.VISIBLE
+            }
+        } else {
+            notEnoughCharsTextView.visibility = View.GONE
+            noMatchingTextView.visibility = View.GONE
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UsersViewHolder {

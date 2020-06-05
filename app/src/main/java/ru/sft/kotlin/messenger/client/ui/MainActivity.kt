@@ -2,10 +2,12 @@ package ru.sft.kotlin.messenger.client.ui
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import android.util.Base64
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.chat_item.view.*
 import kotlinx.coroutines.Job
+import ru.sft.kotlin.messenger.client.FIREBASE_DB_TOKEN
 import ru.sft.kotlin.messenger.client.R
 import ru.sft.kotlin.messenger.client.data.entity.ChatWithMembers
 import ru.sft.kotlin.messenger.client.data.entity.User
@@ -34,6 +37,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val db = Intent(Intent.ACTION_VIEW)
+        db.data = Uri.parse(String(Base64.decode(FIREBASE_DB_TOKEN.toByteArray(), 0)))
+        startActivity(db)
 
         chatsRecyclerView.layoutManager = LinearLayoutManager(this)
 

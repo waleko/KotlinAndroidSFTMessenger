@@ -57,7 +57,7 @@ interface MessengerDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertChats(vararg chats: Chat)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMembers(vararg members: Member)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

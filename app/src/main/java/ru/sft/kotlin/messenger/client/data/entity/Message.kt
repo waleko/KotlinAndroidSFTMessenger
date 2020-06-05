@@ -1,6 +1,8 @@
 package ru.sft.kotlin.messenger.client.data.entity
 
 import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import ru.sft.kotlin.messenger.client.api.MessageInfo
 
 @Entity(
@@ -20,10 +22,11 @@ import ru.sft.kotlin.messenger.client.api.MessageInfo
         )
     ],
     indices = [
-        Index( value = [ "memberId" ] )
+        Index( value = [ "memberId" ] ),
+        Index( value = [ "chatId" ] )
     ]
 )
-data class Message (
+open class Message (
     @PrimaryKey
     var id: Int,
     val memberId: Int,
@@ -42,13 +45,31 @@ data class Message (
 }
 
 class MessageWithMember (
-    var id: Int,
-    val memberId: Int,
-    val text: String,
-    val createdOn: Long,
-    val chatId: Int,
-    val memberDisplayName: String,
-    val userId: String,
-    @ColumnInfo(name = "isActive")
+    id: Int,
+    memberId: Int,
+    text: String,
+    createdOn: Long,
+    chatId: Int,
+
+    @Relation(parentColumn = "memberId", entityColumn = "id")
+    val member: Member
+) : Message(
+    id,
+    memberId,
+    chatId,
+    text,
+    createdOn
+) {
+    val memberDisplayName: String
+        get() = member.memberDisplayName
+    val userId: String
+        get() = member.userId
     val isMemberActive: Boolean
-)
+        get() = member.isActive
+}
+
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("CREATE INDEX index_Messages_chatId ON Messages (chatId)")
+    }
+}

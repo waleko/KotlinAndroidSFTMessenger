@@ -41,4 +41,6 @@
     <string name="select_user_to_add_to_chat">Select user to add to chat:</string>
     <string name="sign_out_confirm">Do you really want to Sign Out?</string>
     <string name="leave_chat_confirm">Do you really want to leave the chat?</string>
+    <string name="no_matching_entries">No matching entries found</string>
+    <string name="minimum_chars">Enter at least 3 characters to start the search</string>
 </resources>
